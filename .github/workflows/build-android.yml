@@ -1,0 +1,127 @@
+name: Build Android APK/AAB
+
+on:
+  # Trigger manual dari GitHub UI
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'apk'
+        type: choice
+        options:
+          - apk
+          - aab
+      profile:
+        description: 'Build profile'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+
+  # Trigger otomatis saat push ke main
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: 🛒 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: ☕ Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔧 Setup Expo CLI
+        run: npm install -g expo-cli eas-cli
+
+      - name: 📱 Generate native Android project
+        run: npx expo prebuild --platform android --clean
+
+      - name: 🔐 Setup signing (Production only)
+        if: ${{ github.event.inputs.profile == 'production' || github.event.inputs.build_type == 'aab' }}
+        run: |
+          # Decode keystore from secret
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+          
+          # Create keystore.properties
+          cat > android/keystore.properties << EOF
+          storeFile=release.keystore
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: 🔨 Build APK (Debug/Preview)
+        if: ${{ github.event.inputs.build_type == 'apk' || github.event.inputs.build_type == '' }}
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+        env:
+          GRADLE_OPTS: -Xmx4g -XX:MaxMetaspaceSize=512m
+
+      - name: 🔨 Build AAB (Production)
+        if: ${{ github.event.inputs.build_type == 'aab' }}
+        run: |
+          cd android
+          ./gradlew bundleRelease --no-daemon
+        env:
+          GRADLE_OPTS: -Xmx4g -XX:MaxMetaspaceSize=512m
+
+      - name: 📁 List build outputs
+        run: |
+          echo "APK files:"
+          find android -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+          echo ""
+          echo "AAB files:"
+          find android -name "*.aab" -type f 2>/dev/null || echo "No AAB found"
+
+      - name: ⬆️ Upload APK artifact
+        if: ${{ github.event.inputs.build_type == 'apk' || github.event.inputs.build_type == '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sholatku-apk-${{ github.sha }}
+          path: |
+            android/app/build/outputs/apk/**/*.apk
+          retention-days: 30
+
+      - name: ⬆️ Upload AAB artifact
+        if: ${{ github.event.inputs.build_type == 'aab' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sholatku-aab-${{ github.sha }}
+          path: |
+            android/app/build/outputs/bundle/**/*.aab
+          retention-days: 30
+
+      - name: 📊 Build Summary
+        run: |
+          echo "## 🎉 Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Type:** ${{ github.event.inputs.build_type || 'apk' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Profile:** ${{ github.event.inputs.profile || 'preview' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download the artifact from the Actions tab!" >> $GITHUB_STEP_SUMMARY
