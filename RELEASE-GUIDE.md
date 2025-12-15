@@ -26,7 +26,17 @@ eas build --platform android --profile production
 
 # Atau build lokal via WSL
 wsl -e bash "/mnt/c/Users/USER/Videos/Jev_Playground/Android Playground/Sholatku/sholatku/build-android.sh"
+
+# Atau build via GitHub Actions (GRATIS, RECOMMENDED!)
+# Lihat panduan lengkap: .github/BUILD-GITHUB-ACTIONS.md
 ```
+
+> 💡 **RECOMMENDED:** Gunakan **GitHub Actions** untuk build gratis tanpa limit EAS!
+> 
+> Caranya:
+> 1. Push repo ke GitHub
+> 2. Buka tab **Actions** → Pilih **"Build Android APK/AAB"**
+> 3. Klik **"Run workflow"** → Download artifact setelah selesai
 
 #### 3. Buat eas.json Profile Production (jika belum ada)
 ```json
