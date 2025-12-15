@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet, ImageBackground, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, ImageBackground, Dimensions, TouchableOpacity } from 'react-native';
 import { Text, ActivityIndicator, Button, useTheme, Surface, Card } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,17 +8,26 @@ import { useLocation } from '@/hooks/useLocation';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { PrayerCard } from '@/components/prayer/PrayerCard';
 import { CountdownTimer } from '@/components/prayer/CountdownTimer';
+import { NotificationSettingsModal } from '@/components/prayer/NotificationSettingsModal';
 import { PrayerType } from '@/types';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { BannerAdComponent } from '@/components/ads/BannerAdComponent';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { selectSettings, setPrayerNotificationMode, PrayerKey, PrayerNotificationMode } from '@/redux/slices/settingsSlice';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
     const theme = useTheme();
+    const dispatch = useAppDispatch();
+    const settings = useAppSelector(selectSettings);
     const { currentLocation, loading: locationLoading, error: locationError, getLocation } = useLocation();
     const { prayers, loading: prayersLoading, error: prayersError, refresh } = usePrayerTimes();
+
+    // Modal state for notification settings
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedPrayer, setSelectedPrayer] = useState<{ key: PrayerKey; name: string } | null>(null);
 
     const loading = locationLoading || prayersLoading;
     const error = locationError || prayersError;
@@ -51,8 +60,9 @@ export default function HomeScreen() {
     }
 
     const PRAYER_NAMES: Record<string, string> = {
+        imsak: 'Imsak',
         fajr: 'Subuh',
-        shuruq: 'Syuruq',
+        shuruq: 'Terbit',
         dhuhr: 'Dzuhur',
         asr: 'Ashar',
         maghrib: 'Maghrib',
@@ -60,6 +70,7 @@ export default function HomeScreen() {
     };
 
     const PRAYER_ICONS: Record<string, string> = {
+        imsak: 'food-off',
         fajr: 'weather-sunset-up',
         shuruq: 'white-balance-sunny',
         dhuhr: 'weather-sunny',
@@ -90,7 +101,42 @@ export default function HomeScreen() {
 
     const nextPrayer = getNextPrayer();
 
-    const prayerList = ['fajr', 'shuruq', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    const prayerList = ['imsak', 'fajr', 'shuruq', 'dhuhr', 'asr', 'maghrib', 'isha'];
+
+    // Get notification icon based on mode
+    const getNotificationIcon = (mode: PrayerNotificationMode): string => {
+        switch (mode) {
+            case 'alarm':
+                return 'bell-ring';
+            case 'notification':
+                return 'bell';
+            case 'silent':
+                return 'bell-off-outline';
+            case 'disabled':
+                return 'bell-cancel-outline';
+            default:
+                return 'bell';
+        }
+    };
+
+    // Get notification icon color based on mode
+    const getNotificationColor = (mode: PrayerNotificationMode, isActive: boolean): string => {
+        if (mode === 'disabled') return '#ccc';
+        if (mode === 'silent') return '#999';
+        if (isActive) return '#1a237e';
+        return '#00897b';
+    };
+
+    // Handle notification icon press
+    const handleNotificationPress = (prayerKey: PrayerKey, prayerName: string) => {
+        setSelectedPrayer({ key: prayerKey, name: prayerName });
+        setModalVisible(true);
+    };
+
+    // Handle mode change from modal
+    const handleModeChange = (prayer: PrayerKey, mode: PrayerNotificationMode) => {
+        dispatch(setPrayerNotificationMode({ prayer, mode }));
+    };
 
     return (
         <View style={styles.container}>
@@ -138,44 +184,52 @@ export default function HomeScreen() {
                 <Text variant="titleMedium" style={styles.sectionTitle}>Jadwal Hari Ini</Text>
                 {prayers && prayerList.map((type) => {
                     const prayerTime = prayers[type as keyof typeof prayers] as string;
+                    if (!prayerTime) return null;
                     const isPast = (() => {
                         const [h, m] = prayerTime.split(':').map(Number);
                         const d = new Date();
                         d.setHours(h, m, 0, 0);
                         return d < new Date();
                     })();
+                    const notifMode = settings.prayerNotificationModes?.[type as PrayerKey] ?? 'notification';
+                    const isNextPrayer = nextPrayer?.type === type;
 
                     return (
                         <Surface key={type} style={[
                             styles.prayerRow,
-                            nextPrayer?.type === type && styles.prayerRowActive
+                            isNextPrayer && styles.prayerRowActive
                         ]} elevation={1}>
                             <View style={styles.prayerIcon}>
                                 <MaterialCommunityIcons
                                     name={PRAYER_ICONS[type] as any}
                                     size={24}
-                                    color={nextPrayer?.type === type ? '#1a237e' : isPast ? '#999' : '#333'}
+                                    color={isNextPrayer ? '#1a237e' : isPast ? '#999' : '#333'}
                                 />
                             </View>
                             <Text style={[
                                 styles.prayerName,
                                 isPast && { color: '#999' },
-                                nextPrayer?.type === type && { color: '#1a237e', fontWeight: 'bold' }
+                                isNextPrayer && { color: '#1a237e', fontWeight: 'bold' }
                             ]}>
                                 {PRAYER_NAMES[type]}
                             </Text>
                             <Text style={[
                                 styles.prayerTime,
                                 isPast && { color: '#999' },
-                                nextPrayer?.type === type && { color: '#1a237e', fontWeight: 'bold' }
+                                isNextPrayer && { color: '#1a237e', fontWeight: 'bold' }
                             ]}>
                                 {prayerTime}
                             </Text>
-                            {nextPrayer?.type === type && (
-                                <View style={styles.nextBadge}>
-                                    <Text style={styles.nextBadgeText}>Berikutnya</Text>
-                                </View>
-                            )}
+                            <TouchableOpacity
+                                style={styles.notificationButton}
+                                onPress={() => handleNotificationPress(type as PrayerKey, PRAYER_NAMES[type])}
+                            >
+                                <MaterialCommunityIcons
+                                    name={getNotificationIcon(notifMode) as any}
+                                    size={24}
+                                    color={getNotificationColor(notifMode, isNextPrayer)}
+                                />
+                            </TouchableOpacity>
                         </Surface>
                     );
                 })}
@@ -183,6 +237,18 @@ export default function HomeScreen() {
 
             {/* Banner Ad */}
             <BannerAdComponent style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }} />
+
+            {/* Notification Settings Modal */}
+            {selectedPrayer && (
+                <NotificationSettingsModal
+                    visible={modalVisible}
+                    onDismiss={() => setModalVisible(false)}
+                    prayerName={selectedPrayer.name}
+                    prayerKey={selectedPrayer.key}
+                    currentMode={settings.prayerNotificationModes?.[selectedPrayer.key] ?? 'notification'}
+                    onModeChange={handleModeChange}
+                />
+            )}
         </View>
     );
 }
@@ -300,6 +366,11 @@ const styles = StyleSheet.create({
     prayerTime: {
         fontSize: 18,
         fontWeight: '600',
+        marginRight: 8,
+    },
+    notificationButton: {
+        padding: 8,
+        marginLeft: 4,
     },
     nextBadge: {
         backgroundColor: '#1a237e',

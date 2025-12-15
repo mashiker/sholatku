@@ -31,7 +31,7 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
 
             // Load and play adzan sound
             const { sound } = await Audio.Sound.createAsync(
-                require('../assets/adzan_shubuh.mp3'),
+                require('../../../assets/adzan_shubuh.mp3'),
                 { shouldPlay: true, volume: 1.0 }
             );
 

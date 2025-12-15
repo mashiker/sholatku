@@ -3,6 +3,12 @@ import { RootState } from '../store';
 
 export type NotificationType = 'full_adzan' | 'takbir' | 'beep' | 'silent';
 
+// Per-prayer notification mode: alarm (full adzan), notification (default sound), silent (no sound), disabled
+export type PrayerNotificationMode = 'alarm' | 'notification' | 'silent' | 'disabled';
+
+// All prayer keys including Imsak and Shuruq
+export type PrayerKey = 'imsak' | 'fajr' | 'shuruq' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
+
 interface SettingsState {
     // Prayer calculation
     calculationMethod: number;
@@ -14,7 +20,7 @@ interface SettingsState {
     preReminderEnabled: boolean;
     preReminderMinutes: number;
 
-    // Per-prayer notification settings
+    // Per-prayer notification settings (legacy - kept for backwards compatibility)
     prayerNotifications: {
         fajr: boolean;
         dhuhr: boolean;
@@ -22,6 +28,9 @@ interface SettingsState {
         maghrib: boolean;
         isha: boolean;
     };
+
+    // Per-prayer notification modes (new)
+    prayerNotificationModes: Record<PrayerKey, PrayerNotificationMode>;
 
     // Theme
     theme: 'system' | 'light' | 'dark';
@@ -43,6 +52,15 @@ const initialState: SettingsState = {
         asr: true,
         maghrib: true,
         isha: true,
+    },
+    prayerNotificationModes: {
+        imsak: 'disabled',
+        fajr: 'alarm',
+        shuruq: 'disabled',
+        dhuhr: 'notification',
+        asr: 'notification',
+        maghrib: 'alarm',
+        isha: 'notification',
     },
     theme: 'system',
     language: 'id',
@@ -79,6 +97,9 @@ const settingsSlice = createSlice({
         setLanguage(state, action: PayloadAction<'id' | 'en'>) {
             state.language = action.payload;
         },
+        setPrayerNotificationMode(state, action: PayloadAction<{ prayer: PrayerKey; mode: PrayerNotificationMode }>) {
+            state.prayerNotificationModes[action.payload.prayer] = action.payload.mode;
+        },
     },
 });
 
@@ -92,6 +113,7 @@ export const {
     togglePrayerNotification,
     setTheme,
     setLanguage,
+    setPrayerNotificationMode,
 } = settingsSlice.actions;
 
 export const selectSettings = (state: RootState) => state.settings;

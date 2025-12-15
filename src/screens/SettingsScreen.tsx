@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, List, Switch, useTheme, Divider, Chip, Surface } from 'react-native-paper';
+import { Text, List, Switch, useTheme, Divider, Chip, Surface, Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,18 +17,35 @@ import {
     togglePrayerNotification,
     NotificationType,
 } from '@/redux/slices/settingsSlice';
+import {
+    selectIsPremium,
+    selectTheme,
+    selectAdzanVoice
+} from '@/redux/slices/premiumSlice';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { useLocation } from '@/hooks/useLocation';
 import { CALCULATION_METHODS } from '@/services/prayer/prayerCalculation';
 import { requestNotificationPermissions, scheduleAllPrayerNotifications } from '@/services/prayer/notificationService';
+import { ThemeSelectionModal } from '@/components/settings/ThemeSelectionModal';
+import { AdzanVoiceModal } from '@/components/settings/AdzanVoiceModal';
+import { THEME_CONFIG, ADZAN_VOICES } from '@/theme/themes';
+import { exportAndShare } from '@/services/export/exportService';
 
 export default function SettingsScreen() {
     const theme = useTheme();
     const navigation = useNavigation<any>();
     const dispatch = useAppDispatch();
     const settings = useAppSelector(selectSettings);
+    const isPremium = useAppSelector(selectIsPremium);
+    const selectedTheme = useAppSelector(selectTheme);
+    const selectedVoice = useAppSelector(selectAdzanVoice);
     const { refresh } = usePrayerTimes();
     const { currentLocation } = useLocation();
+
+    // Modal states
+    const [showThemeModal, setShowThemeModal] = useState(false);
+    const [showVoiceModal, setShowVoiceModal] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
     const {
         calculationMethod,
@@ -260,17 +277,88 @@ export default function SettingsScreen() {
                     )}
                 </Surface>
 
-                {/* Premium */}
-                <Surface style={[styles.section, { backgroundColor: '#FFF8E1' }]} elevation={1}>
+                {/* Premium Features */}
+                <Surface style={styles.section} elevation={1}>
+                    <Text variant="titleSmall" style={styles.sectionTitle}>
+                        👑 Fitur Premium
+                    </Text>
                     <List.Item
-                        title="⭐ Upgrade ke Premium"
-                        description="Bebas iklan & fitur eksklusif"
-                        left={() => <List.Icon icon="crown" color="#FFB300" />}
-                        right={() => <List.Icon icon="chevron-right" />}
-                        onPress={() => navigation.navigate('Premium')}
-                        titleStyle={{ fontWeight: 'bold' }}
+                        title="Tema Aplikasi"
+                        description={isPremium ? THEME_CONFIG[selectedTheme].nameId : 'Biru Default (Upgrade untuk lebih)'}
+                        left={() => <List.Icon icon="palette" color={isPremium ? '#1a237e' : '#999'} />}
+                        right={() => (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                {!isPremium && <MaterialCommunityIcons name="lock" size={16} color="#999" style={{ marginRight: 8 }} />}
+                                <List.Icon icon="chevron-right" />
+                            </View>
+                        )}
+                        onPress={() => setShowThemeModal(true)}
+                    />
+                    <Divider />
+                    <List.Item
+                        title="Suara Adzan"
+                        description={isPremium ? ADZAN_VOICES[selectedVoice].nameId : 'Default (Upgrade untuk lebih)'}
+                        left={() => <List.Icon icon="volume-high" color={isPremium ? '#1a237e' : '#999'} />}
+                        right={() => (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                {!isPremium && <MaterialCommunityIcons name="lock" size={16} color="#999" style={{ marginRight: 8 }} />}
+                                <List.Icon icon="chevron-right" />
+                            </View>
+                        )}
+                        onPress={() => setShowVoiceModal(true)}
+                    />
+                    <Divider />
+                    <List.Item
+                        title="Export Data"
+                        description="Export laporan sholat ke CSV"
+                        left={() => <List.Icon icon="file-export" color={isPremium ? '#1a237e' : '#999'} />}
+                        right={() => (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                {!isPremium && <MaterialCommunityIcons name="lock" size={16} color="#999" style={{ marginRight: 8 }} />}
+                                <List.Icon icon="chevron-right" />
+                            </View>
+                        )}
+                        onPress={async () => {
+                            if (!isPremium) {
+                                navigation.navigate('Premium');
+                                return;
+                            }
+                            setExporting(true);
+                            try {
+                                // Sample data - in real app, fetch from Redux/DB
+                                await exportAndShare({
+                                    prayerRecords: [
+                                        { date: '2024-12-14', fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
+                                        { date: '2024-12-15', fajr: true, dhuhr: true, asr: false, maghrib: true, isha: true },
+                                    ],
+                                    streak: 7,
+                                    totalDays: 14,
+                                    completionRate: 85,
+                                    startDate: '1 Desember 2024',
+                                    endDate: '14 Desember 2024',
+                                }, 'csv');
+                                Alert.alert('Sukses', 'Laporan berhasil di-export!');
+                            } catch (error) {
+                                Alert.alert('Error', 'Gagal export data');
+                            }
+                            setExporting(false);
+                        }}
                     />
                 </Surface>
+
+                {/* Upgrade Banner */}
+                {!isPremium && (
+                    <Surface style={[styles.section, { backgroundColor: '#FFF8E1' }]} elevation={1}>
+                        <List.Item
+                            title="⭐ Upgrade ke Premium"
+                            description="Bebas iklan & fitur eksklusif"
+                            left={() => <List.Icon icon="crown" color="#FFB300" />}
+                            right={() => <List.Icon icon="chevron-right" />}
+                            onPress={() => navigation.navigate('Premium')}
+                            titleStyle={{ fontWeight: 'bold' }}
+                        />
+                    </Surface>
+                )}
 
                 {/* About */}
                 <Surface style={styles.section} elevation={1}>
@@ -349,6 +437,24 @@ export default function SettingsScreen() {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
+
+            {/* Modals */}
+            <ThemeSelectionModal
+                visible={showThemeModal}
+                onDismiss={() => setShowThemeModal(false)}
+                onUpgrade={() => {
+                    setShowThemeModal(false);
+                    navigation.navigate('Premium');
+                }}
+            />
+            <AdzanVoiceModal
+                visible={showVoiceModal}
+                onDismiss={() => setShowVoiceModal(false)}
+                onUpgrade={() => {
+                    setShowVoiceModal(false);
+                    navigation.navigate('Premium');
+                }}
+            />
         </View>
     );
 }

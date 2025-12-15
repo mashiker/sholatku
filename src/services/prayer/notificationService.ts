@@ -8,6 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
 import { calculatePrayerTimes, CalculationMethodType, MadhabType } from './prayerCalculation';
+import { PrayerNotificationMode, PrayerKey } from '@/redux/slices/settingsSlice';
 
 export type NotificationType = 'full_adzan' | 'takbir' | 'beep' | 'silent';
 
@@ -41,6 +42,24 @@ const DEFAULT_CONFIG: PrayerNotificationConfig = {
     asr: { ...DEFAULT_NOTIFICATION_SETTINGS },
     maghrib: { ...DEFAULT_NOTIFICATION_SETTINGS, type: 'full_adzan' },
     isha: { ...DEFAULT_NOTIFICATION_SETTINGS },
+};
+
+/**
+ * Convert PrayerNotificationMode to NotificationSettings
+ */
+export const convertModeToSettings = (mode: PrayerNotificationMode): NotificationSettings => {
+    switch (mode) {
+        case 'alarm':
+            return { ...DEFAULT_NOTIFICATION_SETTINGS, type: 'full_adzan', enabled: true };
+        case 'notification':
+            return { ...DEFAULT_NOTIFICATION_SETTINGS, type: 'beep', enabled: true };
+        case 'silent':
+            return { ...DEFAULT_NOTIFICATION_SETTINGS, type: 'silent', enabled: true, vibrate: false };
+        case 'disabled':
+            return { ...DEFAULT_NOTIFICATION_SETTINGS, enabled: false };
+        default:
+            return DEFAULT_NOTIFICATION_SETTINGS;
+    }
 };
 
 // Configure notification handler - wrapped in try-catch for Expo Go compatibility
@@ -110,7 +129,7 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
                         staysActiveInBackground: true,
                         shouldDuckAndroid: false,
                     });
-                    await playAdzanSound();
+                    await playAdzanSound(data?.prayerName as string);
                 } catch (e) {
                     console.log('Could not play adzan sound:', e);
                 }
@@ -128,7 +147,7 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
                         staysActiveInBackground: true,
                         shouldDuckAndroid: false,
                     });
-                    await playAdzanSound();
+                    await playAdzanSound(data?.prayerName as string);
                 } catch (e) {
                     console.log('Could not play adzan sound on tap:', e);
                 }
@@ -285,9 +304,9 @@ export const scheduleAllPrayerNotifications = async (
 };
 
 /**
- * Play adzan sound
+ * Play adzan sound - uses different sounds for Subuh vs other prayers
  */
-export const playAdzanSound = async (): Promise<void> => {
+export const playAdzanSound = async (prayerName?: string): Promise<void> => {
     try {
         // Ensure audio mode is ready
         await Audio.setAudioModeAsync({
@@ -295,8 +314,14 @@ export const playAdzanSound = async (): Promise<void> => {
             staysActiveInBackground: true,
         });
 
+        // Use Subuh adzan for Subuh prayer, otherwise use the other adzan
+        const isSubuh = prayerName?.toLowerCase() === 'subuh' || prayerName?.toLowerCase() === 'fajr';
+        const adzanSource = isSubuh
+            ? require('../../../assets/adzan_subuh.mp3')
+            : require('../../../assets/adzan_other.mp3');
+
         const { sound } = await Audio.Sound.createAsync(
-            require('../../../assets/adzan_shubuh.mp3'),
+            adzanSource,
             { shouldPlay: true }
         );
 
