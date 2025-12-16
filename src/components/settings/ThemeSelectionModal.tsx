@@ -28,17 +28,37 @@ export const ThemeSelectionModal: React.FC<Props> = ({ visible, onDismiss, onUpg
         onDismiss();
     };
 
+    // Order themes: default first, then new premium dark themes, then legacy themes
+    const themeOrder: AppTheme[] = [
+        'default',
+        'royal_purple',
+        'desert_sand',
+        'ocean_night',
+        'rose_garden',
+        'emerald_palace',
+        'midnight',
+        'classic',
+        'ocean',
+        'forest',
+        'gold',
+    ];
+
     return (
         <Portal>
             <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.modal}>
                 <View style={styles.header}>
                     <Text variant="titleLarge" style={styles.title}>Pilih Tema</Text>
-                    <IconButton icon="close" onPress={onDismiss} />
+                    <IconButton icon="close" iconColor="#fff" onPress={onDismiss} />
                 </View>
 
-                <ScrollView style={styles.content}>
-                    {(Object.keys(THEME_CONFIG) as AppTheme[]).map((key) => {
+                <Text style={styles.subtitle}>
+                    {isPremium ? '✨ Akses ke semua tema premium' : '👑 Upgrade untuk membuka semua tema'}
+                </Text>
+
+                <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                    {themeOrder.map((key) => {
                         const theme = THEME_CONFIG[key];
+                        if (!theme) return null;
                         const isSelected = currentTheme === key;
                         const isLocked = theme.isPremium && !isPremium;
 
@@ -55,7 +75,7 @@ export const ThemeSelectionModal: React.FC<Props> = ({ visible, onDismiss, onUpg
                                     colors={theme.colors.headerGradient}
                                     style={styles.themePreview}
                                     start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
                                 >
                                     <View style={[styles.previewSurface, { backgroundColor: theme.colors.surface }]}>
                                         <View style={[styles.previewAccent, { backgroundColor: theme.colors.accent }]} />
@@ -67,23 +87,30 @@ export const ThemeSelectionModal: React.FC<Props> = ({ visible, onDismiss, onUpg
                                         <Text style={styles.themeName}>{theme.nameId}</Text>
                                         {isLocked && (
                                             <View style={styles.premiumBadge}>
-                                                <MaterialCommunityIcons name="crown" size={12} color="#FFD700" />
-                                                <Text style={styles.premiumText}>Premium</Text>
+                                                <MaterialCommunityIcons name="crown" size={10} color="#FFD700" />
+                                            </View>
+                                        )}
+                                        {!theme.isPremium && (
+                                            <View style={styles.freeBadge}>
+                                                <Text style={styles.freeText}>Gratis</Text>
                                             </View>
                                         )}
                                     </View>
-                                    <Text style={styles.themeDesc}>{theme.name}</Text>
+                                    <Text style={styles.themeDesc} numberOfLines={1}>
+                                        {theme.description || theme.name}
+                                    </Text>
                                 </View>
 
                                 {isSelected && (
                                     <MaterialCommunityIcons name="check-circle" size={24} color="#4CAF50" />
                                 )}
                                 {isLocked && (
-                                    <MaterialCommunityIcons name="lock" size={24} color="#999" />
+                                    <MaterialCommunityIcons name="lock" size={20} color="#666" />
                                 )}
                             </TouchableOpacity>
                         );
                     })}
+                    <View style={{ height: 20 }} />
                 </ScrollView>
             </Modal>
         </Portal>
@@ -92,10 +119,10 @@ export const ThemeSelectionModal: React.FC<Props> = ({ visible, onDismiss, onUpg
 
 const styles = StyleSheet.create({
     modal: {
-        backgroundColor: '#fff',
+        backgroundColor: '#0d2137',
         margin: 16,
         borderRadius: 16,
-        maxHeight: '80%',
+        maxHeight: '85%',
     },
     header: {
         flexDirection: 'row',
@@ -106,24 +133,35 @@ const styles = StyleSheet.create({
     },
     title: {
         fontWeight: 'bold',
+        color: '#fff',
+    },
+    subtitle: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 13,
+        paddingHorizontal: 20,
+        marginBottom: 8,
     },
     content: {
         padding: 16,
+        paddingTop: 8,
     },
     themeCard: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 12,
-        marginBottom: 12,
+        marginBottom: 10,
         borderRadius: 12,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     themeCardSelected: {
         borderWidth: 2,
-        borderColor: '#4CAF50',
+        borderColor: '#c9a227',
+        backgroundColor: 'rgba(201, 162, 39, 0.1)',
     },
     themePreview: {
-        width: 60,
+        width: 56,
         height: 40,
         borderRadius: 8,
         padding: 4,
@@ -150,26 +188,28 @@ const styles = StyleSheet.create({
     },
     themeName: {
         fontWeight: '600',
-        fontSize: 15,
+        fontSize: 14,
+        color: '#fff',
     },
     themeDesc: {
-        color: '#666',
-        fontSize: 12,
+        color: 'rgba(255,255,255,0.5)',
+        fontSize: 11,
         marginTop: 2,
     },
     premiumBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#1a237e',
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 10,
-        marginLeft: 8,
+        marginLeft: 6,
     },
-    premiumText: {
-        color: '#FFD700',
-        fontSize: 10,
+    freeBadge: {
+        backgroundColor: '#1b6d51',
+        paddingHorizontal: 6,
+        paddingVertical: 1,
+        borderRadius: 8,
+        marginLeft: 6,
+    },
+    freeText: {
+        color: '#fff',
+        fontSize: 9,
         fontWeight: 'bold',
-        marginLeft: 4,
     },
 });
+

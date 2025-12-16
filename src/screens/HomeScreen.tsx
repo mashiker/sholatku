@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, ImageBackground, Dimensions, TouchableOpacity } from 'react-native';
-import { Text, ActivityIndicator, Button, useTheme, Surface, Card } from 'react-native-paper';
+import { View, ScrollView, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { Text, ActivityIndicator, Button, useTheme, Surface } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocation } from '@/hooks/useLocation';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
-import { PrayerCard } from '@/components/prayer/PrayerCard';
 import { CountdownTimer } from '@/components/prayer/CountdownTimer';
 import { NotificationSettingsModal } from '@/components/prayer/NotificationSettingsModal';
 import { PrayerType } from '@/types';
@@ -15,8 +14,32 @@ import { id } from 'date-fns/locale';
 import { BannerAdComponent } from '@/components/ads/BannerAdComponent';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { selectSettings, setPrayerNotificationMode, PrayerKey, PrayerNotificationMode } from '@/redux/slices/settingsSlice';
+import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
+
+// Islamic Arch SVG Component
+const IslamicArch = () => (
+    <Svg width={width} height={180} viewBox={`0 0 ${width} 180`} style={styles.archSvg}>
+        <Defs>
+            <SvgLinearGradient id="archGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <Stop offset="0%" stopColor="#1b6d51" stopOpacity="0.6" />
+                <Stop offset="100%" stopColor="#0d2137" stopOpacity="0.3" />
+            </SvgLinearGradient>
+        </Defs>
+        <Path
+            d={`M0,180 L0,100 Q${width / 2},0 ${width},100 L${width},180 Z`}
+            fill="url(#archGradient)"
+        />
+        <Path
+            d={`M20,180 L20,110 Q${width / 2},20 ${width - 20},110 L${width - 20},180`}
+            fill="none"
+            stroke="#c9a227"
+            strokeWidth="2"
+            strokeOpacity="0.5"
+        />
+    </Svg>
+);
 
 export default function HomeScreen() {
     const theme = useTheme();
@@ -37,8 +60,8 @@ export default function HomeScreen() {
     if (loading && !prayers) {
         return (
             <View style={styles.center}>
-                <LinearGradient colors={['#1a237e', '#0d47a1']} style={StyleSheet.absoluteFill} />
-                <ActivityIndicator size="large" color="#fff" />
+                <LinearGradient colors={['#0a1628', '#0d2137']} style={StyleSheet.absoluteFill} />
+                <ActivityIndicator size="large" color="#c9a227" />
                 <Text style={{ marginTop: 10, color: '#fff' }}>Memuat Jadwal Sholat...</Text>
             </View>
         );
@@ -47,12 +70,12 @@ export default function HomeScreen() {
     if (error && !prayers) {
         return (
             <View style={styles.center}>
-                <LinearGradient colors={['#1a237e', '#0d47a1']} style={StyleSheet.absoluteFill} />
-                <MaterialCommunityIcons name="alert-circle" size={64} color="#ff8a80" />
+                <LinearGradient colors={['#0a1628', '#0d2137']} style={StyleSheet.absoluteFill} />
+                <MaterialCommunityIcons name="alert-circle" size={64} color="#c9a227" />
                 <Text variant="titleMedium" style={{ color: '#fff', textAlign: 'center', marginVertical: 16 }}>
                     {error}
                 </Text>
-                <Button mode="contained" onPress={() => { getLocation(); refresh(); }} buttonColor="#fff" textColor="#1a237e">
+                <Button mode="contained" onPress={() => { getLocation(); refresh(); }} buttonColor="#c9a227" textColor="#0a1628">
                     Coba Lagi
                 </Button>
             </View>
@@ -61,22 +84,12 @@ export default function HomeScreen() {
 
     const PRAYER_NAMES: Record<string, string> = {
         imsak: 'Imsak',
-        fajr: 'Subuh',
+        fajr: 'Shubuh',
         shuruq: 'Terbit',
         dhuhr: 'Dzuhur',
         asr: 'Ashar',
         maghrib: 'Maghrib',
         isha: 'Isya',
-    };
-
-    const PRAYER_ICONS: Record<string, string> = {
-        imsak: 'food-off',
-        fajr: 'weather-sunset-up',
-        shuruq: 'white-balance-sunny',
-        dhuhr: 'weather-sunny',
-        asr: 'weather-sunny-alert',
-        maghrib: 'weather-sunset-down',
-        isha: 'weather-night',
     };
 
     const getNextPrayer = () => {
@@ -93,10 +106,10 @@ export default function HomeScreen() {
         for (const type of list) {
             const prayerTime = prayers[type as keyof typeof prayers] as string;
             if (timeToDate(prayerTime) > now) {
-                return { type, name: PRAYER_NAMES[type], time: prayerTime, icon: PRAYER_ICONS[type] };
+                return { type, name: PRAYER_NAMES[type], time: prayerTime };
             }
         }
-        return { type: 'fajr', name: 'Subuh', time: prayers.fajr, icon: PRAYER_ICONS.fajr };
+        return { type: 'fajr', name: 'Shubuh', time: prayers.fajr };
     };
 
     const nextPrayer = getNextPrayer();
@@ -121,10 +134,10 @@ export default function HomeScreen() {
 
     // Get notification icon color based on mode
     const getNotificationColor = (mode: PrayerNotificationMode, isActive: boolean): string => {
-        if (mode === 'disabled') return '#ccc';
-        if (mode === 'silent') return '#999';
-        if (isActive) return '#1a237e';
-        return '#00897b';
+        if (mode === 'disabled') return '#555';
+        if (mode === 'silent') return '#777';
+        if (isActive) return '#c9a227';
+        return '#1b6d51';
     };
 
     // Handle notification icon press
@@ -140,100 +153,97 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
-            <LinearGradient colors={['#1a237e', '#283593', '#3949ab']} style={styles.headerGradient}>
-                <SafeAreaView edges={['top']}>
-                    <View style={styles.header}>
-                        <View>
-                            <Text variant="headlineMedium" style={styles.appTitle}>SholatKu</Text>
-                            <View style={styles.locationRow}>
-                                <MaterialCommunityIcons name="map-marker" size={16} color="rgba(255,255,255,0.8)" />
-                                <Text style={styles.locationText}>
-                                    {currentLocation?.city || 'Menentukan lokasi...'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={styles.dateContainer}>
-                            <Text style={styles.dateText}>{today}</Text>
-                            <Text style={styles.hijriText}>{prayers?.hijri_date || ''}</Text>
-                        </View>
+            <LinearGradient colors={['#0a1628', '#0d2137']} style={StyleSheet.absoluteFill} />
+
+            <SafeAreaView edges={['top']} style={styles.safeArea}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.appTitle}>𝒮holatku</Text>
+                    <View style={styles.headerIcons}>
+                        <TouchableOpacity style={styles.headerIcon}>
+                            <MaterialCommunityIcons name="cog-outline" size={24} color="#fff" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.headerIcon}>
+                            <MaterialCommunityIcons name="bell-outline" size={24} color="#fff" />
+                        </TouchableOpacity>
                     </View>
+                </View>
 
-                    {/* Next Prayer Countdown */}
-                    {nextPrayer && (
-                        <Card style={styles.countdownCard} mode="elevated">
-                            <Card.Content style={styles.countdownContent}>
-                                <View style={styles.countdownLeft}>
-                                    <Text variant="labelMedium" style={{ color: '#666' }}>Waktu Sholat Berikutnya</Text>
-                                    <View style={styles.nextPrayerRow}>
-                                        <MaterialCommunityIcons name={nextPrayer.icon as any} size={28} color="#1a237e" />
-                                        <Text variant="headlineSmall" style={styles.nextPrayerName}>{nextPrayer.name}</Text>
+                {/* Islamic Arch with Countdown */}
+                <View style={styles.archContainer}>
+                    <IslamicArch />
+                    <View style={styles.countdownOverlay}>
+                        <Text style={styles.upcomingLabel}>Upcoming</Text>
+                        {nextPrayer && (
+                            <>
+                                <CountdownTimer targetTime={nextPrayer.time} prayerName={nextPrayer.name} compact />
+                                <Text style={styles.nextPrayerName}>{nextPrayer.name}</Text>
+                            </>
+                        )}
+                    </View>
+                </View>
+
+                {/* Prayer List */}
+                <View style={styles.prayerListContainer}>
+                    <ScrollView style={styles.prayerList} contentContainerStyle={{ paddingBottom: 180 }} showsVerticalScrollIndicator={false}>
+                        {prayers && prayerList.map((type, index) => {
+                            const prayerTime = prayers[type as keyof typeof prayers] as string;
+                            if (!prayerTime) return null;
+                            const isPast = (() => {
+                                const [h, m] = prayerTime.split(':').map(Number);
+                                const d = new Date();
+                                d.setHours(h, m, 0, 0);
+                                return d < new Date();
+                            })();
+                            const notifMode = settings.prayerNotificationModes?.[type as PrayerKey] ?? 'notification';
+                            const isNextPrayer = nextPrayer?.type === type;
+                            const isFirstItem = index === 0;
+                            const isLastItem = index === prayerList.length - 1;
+
+                            return (
+                                <Surface key={type} style={[
+                                    styles.prayerRow,
+                                    isNextPrayer && styles.prayerRowActive,
+                                    isFirstItem && styles.prayerRowFirst,
+                                    isLastItem && styles.prayerRowLast,
+                                ]} elevation={0}>
+                                    <View style={styles.prayerIcon}>
+                                        <MaterialCommunityIcons
+                                            name="mosque"
+                                            size={20}
+                                            color={isNextPrayer ? '#c9a227' : isPast ? '#555' : '#888'}
+                                        />
                                     </View>
-                                    <Text variant="displaySmall" style={styles.nextPrayerTime}>{nextPrayer.time}</Text>
-                                </View>
-                                <View style={styles.countdownRight}>
-                                    <CountdownTimer targetTime={nextPrayer.time} prayerName={nextPrayer.name} compact />
-                                </View>
-                            </Card.Content>
-                        </Card>
-                    )}
-                </SafeAreaView>
-            </LinearGradient>
-
-            {/* Prayer List */}
-            <ScrollView style={styles.prayerList} contentContainerStyle={{ paddingBottom: 100 }}>
-                <Text variant="titleMedium" style={styles.sectionTitle}>Jadwal Hari Ini</Text>
-                {prayers && prayerList.map((type) => {
-                    const prayerTime = prayers[type as keyof typeof prayers] as string;
-                    if (!prayerTime) return null;
-                    const isPast = (() => {
-                        const [h, m] = prayerTime.split(':').map(Number);
-                        const d = new Date();
-                        d.setHours(h, m, 0, 0);
-                        return d < new Date();
-                    })();
-                    const notifMode = settings.prayerNotificationModes?.[type as PrayerKey] ?? 'notification';
-                    const isNextPrayer = nextPrayer?.type === type;
-
-                    return (
-                        <Surface key={type} style={[
-                            styles.prayerRow,
-                            isNextPrayer && styles.prayerRowActive
-                        ]} elevation={1}>
-                            <View style={styles.prayerIcon}>
-                                <MaterialCommunityIcons
-                                    name={PRAYER_ICONS[type] as any}
-                                    size={24}
-                                    color={isNextPrayer ? '#1a237e' : isPast ? '#999' : '#333'}
-                                />
-                            </View>
-                            <Text style={[
-                                styles.prayerName,
-                                isPast && { color: '#999' },
-                                isNextPrayer && { color: '#1a237e', fontWeight: 'bold' }
-                            ]}>
-                                {PRAYER_NAMES[type]}
-                            </Text>
-                            <Text style={[
-                                styles.prayerTime,
-                                isPast && { color: '#999' },
-                                isNextPrayer && { color: '#1a237e', fontWeight: 'bold' }
-                            ]}>
-                                {prayerTime}
-                            </Text>
-                            <TouchableOpacity
-                                style={styles.notificationButton}
-                                onPress={() => handleNotificationPress(type as PrayerKey, PRAYER_NAMES[type])}
-                            >
-                                <MaterialCommunityIcons
-                                    name={getNotificationIcon(notifMode) as any}
-                                    size={24}
-                                    color={getNotificationColor(notifMode, isNextPrayer)}
-                                />
-                            </TouchableOpacity>
-                        </Surface>
-                    );
-                })}
-            </ScrollView>
+                                    <Text style={[
+                                        styles.prayerName,
+                                        isPast && { color: '#555' },
+                                        isNextPrayer && { color: '#fff', fontWeight: 'bold' }
+                                    ]}>
+                                        {PRAYER_NAMES[type]}
+                                    </Text>
+                                    <Text style={[
+                                        styles.prayerTime,
+                                        isPast && { color: '#555' },
+                                        isNextPrayer && { color: '#c9a227', fontWeight: 'bold' }
+                                    ]}>
+                                        {prayerTime}
+                                    </Text>
+                                    <TouchableOpacity
+                                        style={styles.notificationButton}
+                                        onPress={() => handleNotificationPress(type as PrayerKey, PRAYER_NAMES[type])}
+                                    >
+                                        <MaterialCommunityIcons
+                                            name={getNotificationIcon(notifMode) as any}
+                                            size={22}
+                                            color={getNotificationColor(notifMode, isNextPrayer)}
+                                        />
+                                    </TouchableOpacity>
+                                </Surface>
+                            );
+                        })}
+                    </ScrollView>
+                </View>
+            </SafeAreaView>
 
             {/* Banner Ad */}
             <BannerAdComponent style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }} />
@@ -256,7 +266,10 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#0a1628',
+    },
+    safeArea: {
+        flex: 1,
     },
     center: {
         flex: 1,
@@ -264,124 +277,101 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
     },
-    headerGradient: {
-        paddingBottom: 80, // Space for the overlapping card
-    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         paddingHorizontal: 20,
         paddingTop: 10,
+        paddingBottom: 5,
     },
     appTitle: {
         color: '#fff',
-        fontWeight: 'bold',
+        fontSize: 28,
+        fontStyle: 'italic',
     },
-    locationRow: {
+    headerIcons: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 4,
     },
-    locationText: {
-        color: 'rgba(255,255,255,0.8)',
-        marginLeft: 4,
+    headerIcon: {
+        marginLeft: 16,
+        padding: 4,
+    },
+    archContainer: {
+        height: 180,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    archSvg: {
+        position: 'absolute',
+        top: 0,
+    },
+    countdownOverlay: {
+        alignItems: 'center',
+        paddingTop: 30,
+    },
+    upcomingLabel: {
+        color: 'rgba(255,255,255,0.6)',
         fontSize: 14,
-    },
-    dateContainer: {
-        alignItems: 'flex-end',
-    },
-    dateText: {
-        color: '#fff',
-        fontSize: 12,
-    },
-    hijriText: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 11,
-    },
-    countdownCard: {
-        marginHorizontal: 16,
-        marginTop: 20,
-        borderRadius: 16,
-        backgroundColor: '#fff',
-    },
-    countdownContent: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    countdownLeft: {},
-    countdownRight: {
-        alignItems: 'flex-end',
-    },
-    nextPrayerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 8,
+        marginBottom: 4,
     },
     nextPrayerName: {
-        marginLeft: 8,
-        fontWeight: 'bold',
-        color: '#1a237e',
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 16,
+        marginTop: 8,
     },
-    nextPrayerTime: {
-        fontWeight: 'bold',
-        color: '#1a237e',
-        marginTop: 4,
+    prayerListContainer: {
+        flex: 1,
+        marginHorizontal: 16,
+        marginTop: 10,
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: '#c9a227',
+        backgroundColor: 'rgba(13, 33, 55, 0.8)',
+        overflow: 'hidden',
     },
     prayerList: {
         flex: 1,
-        marginTop: -50, // Overlap with header
-        paddingTop: 60,
-    },
-    sectionTitle: {
-        paddingHorizontal: 20,
-        marginBottom: 12,
-        fontWeight: 'bold',
-        color: '#333',
     },
     prayerRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginHorizontal: 16,
-        marginVertical: 4,
-        paddingVertical: 16,
+        paddingVertical: 14,
         paddingHorizontal: 16,
-        borderRadius: 12,
-        backgroundColor: '#fff',
+        backgroundColor: 'transparent',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(201, 162, 39, 0.2)',
     },
     prayerRowActive: {
-        backgroundColor: '#e8eaf6',
-        borderLeftWidth: 4,
-        borderLeftColor: '#1a237e',
+        backgroundColor: 'rgba(27, 109, 81, 0.3)',
+    },
+    prayerRowFirst: {
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
+    },
+    prayerRowLast: {
+        borderBottomWidth: 0,
+        borderBottomLeftRadius: 14,
+        borderBottomRightRadius: 14,
     },
     prayerIcon: {
-        width: 40,
+        width: 36,
         alignItems: 'center',
     },
     prayerName: {
         flex: 1,
         fontSize: 16,
+        color: '#aaa',
     },
     prayerTime: {
         fontSize: 18,
         fontWeight: '600',
         marginRight: 8,
+        color: '#888',
     },
     notificationButton: {
         padding: 8,
         marginLeft: 4,
-    },
-    nextBadge: {
-        backgroundColor: '#1a237e',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-        marginLeft: 8,
-    },
-    nextBadgeText: {
-        color: '#fff',
-        fontSize: 10,
-        fontWeight: 'bold',
     },
 });

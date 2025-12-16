@@ -3,25 +3,30 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Text, View } from 'react-native';
 import { TamaguiProvider } from 'tamagui';
-import { PaperProvider, MD3LightTheme } from 'react-native-paper';
+import { PaperProvider, MD3DarkTheme } from 'react-native-paper';
 import { store, persistor } from './src/redux/store';
 import RootNavigator from './src/navigation/RootNavigator';
 import tamaguiConfig from './tamagui.config';
 import { initDatabase } from './src/services/database/dbInit';
 import { registerBackgroundNotificationHandler } from './src/services/prayer/backgroundNotificationHandler';
 
-// Custom theme for react-native-paper
+// Custom theme for react-native-paper - Islamic Dark Theme
 const theme = {
-  ...MD3LightTheme,
+  ...MD3DarkTheme,
   colors: {
-    ...MD3LightTheme.colors,
-    primary: '#1a237e',
-    primaryContainer: '#E8EAF6',
-    secondary: '#3949ab',
-    secondaryContainer: '#C5CAE9',
-    surface: '#ffffff',
-    background: '#f5f5f5',
-    error: '#B00020',
+    ...MD3DarkTheme.colors,
+    primary: '#c9a227',
+    primaryContainer: '#1a3a52',
+    secondary: '#1b6d51',
+    secondaryContainer: '#0d2137',
+    surface: '#0d2137',
+    background: '#0a1628',
+    surfaceVariant: '#1a3a52',
+    onSurface: '#ffffff',
+    onSurfaceVariant: 'rgba(255,255,255,0.7)',
+    outline: '#1a3a52',
+    outlineVariant: 'rgba(201, 162, 39, 0.3)',
+    error: '#cf6679',
   },
 };
 

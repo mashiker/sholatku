@@ -1,14 +1,16 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, Animated, Platform } from 'react-native';
-import { Text, useTheme, ActivityIndicator, Chip, Surface } from 'react-native-paper';
+import { View, StyleSheet, Dimensions, Animated, Platform, Image } from 'react-native';
+import { Text, useTheme, ActivityIndicator, Surface } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCompass } from '@/hooks/useCompass';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import Svg, { Circle, Line, Text as SvgText, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
-const COMPASS_SIZE = width * 0.8;
+const COMPASS_SIZE = width * 0.85;
+const COMPASS_RADIUS = COMPASS_SIZE / 2;
 
 export default function CompassScreen() {
     const theme = useTheme();
@@ -37,7 +39,7 @@ export default function CompassScreen() {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Animated.loop(
                 Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 1.1, duration: 500, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 1.05, duration: 500, useNativeDriver: true }),
                     Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
                 ])
             ).start();
@@ -52,6 +54,14 @@ export default function CompassScreen() {
         outputRange: ['-360deg', '360deg'],
     });
 
+    const getCalibrationText = () => {
+        switch (calibrationStatus) {
+            case 'good': return 'Baik';
+            case 'medium': return 'Sedang';
+            case 'poor': return 'Buruk';
+        }
+    };
+
     const getCalibrationColor = () => {
         switch (calibrationStatus) {
             case 'good': return '#4CAF50';
@@ -60,12 +70,26 @@ export default function CompassScreen() {
         }
     };
 
+    // Calculate distance from Makkah (approximate)
+    const getDistanceFromMakkah = () => {
+        // This is a placeholder - actual distance would come from location service
+        return '12,560';
+    };
+
+    // Get direction text (NE, NW, SE, SW, N, S, E, W)
+    const getDirectionText = (degrees: number) => {
+        const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        const index = Math.round(degrees / 45) % 8;
+        return directions[index];
+    };
+
     if (!isAvailable) {
         return (
             <SafeAreaView style={styles.container}>
+                <LinearGradient colors={['#0a1628', '#0d2137']} style={StyleSheet.absoluteFill} />
                 <View style={styles.errorContainer}>
-                    <MaterialCommunityIcons name="compass-off" size={64} color={theme.colors.error} />
-                    <Text variant="titleMedium" style={{ marginTop: 16, textAlign: 'center' }}>
+                    <MaterialCommunityIcons name="compass-off" size={64} color="#c9a227" />
+                    <Text variant="titleMedium" style={{ marginTop: 16, textAlign: 'center', color: '#fff' }}>
                         Sensor kompas tidak tersedia pada perangkat ini.
                     </Text>
                 </View>
@@ -76,9 +100,10 @@ export default function CompassScreen() {
     if (locationLoading || !hasLocation) {
         return (
             <SafeAreaView style={styles.container}>
+                <LinearGradient colors={['#0a1628', '#0d2137']} style={StyleSheet.absoluteFill} />
                 <View style={styles.errorContainer}>
-                    <ActivityIndicator size="large" />
-                    <Text variant="bodyMedium" style={{ marginTop: 16 }}>
+                    <ActivityIndicator size="large" color="#c9a227" />
+                    <Text variant="bodyMedium" style={{ marginTop: 16, color: '#fff' }}>
                         Mendapatkan lokasi...
                     </Text>
                 </View>
@@ -88,21 +113,21 @@ export default function CompassScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <LinearGradient
-                colors={['#1a237e', '#0d47a1', '#1565c0']}
-                style={StyleSheet.absoluteFill}
-            />
+            <LinearGradient colors={['#0a1628', '#0d2137']} style={StyleSheet.absoluteFill} />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <Text variant="headlineMedium" style={styles.title}>Arah Kiblat</Text>
-                <Chip
-                    icon="crosshairs-gps"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                    textStyle={{ color: '#fff' }}
-                >
-                    {Math.round(qiblaDirection)}° dari Utara
-                </Chip>
+            {/* Accuracy Badge */}
+            <View style={styles.accuracyBadge}>
+                <MaterialCommunityIcons name="signal-cellular-3" size={18} color={getCalibrationColor()} />
+                <Text style={styles.accuracyText}>Akurasi: </Text>
+                <Text style={[styles.accuracyValue, { color: getCalibrationColor() }]}>
+                    {getCalibrationText()}
+                </Text>
+                <View style={styles.signalBars}>
+                    <View style={[styles.signalBar, { backgroundColor: getCalibrationColor() }]} />
+                    <View style={[styles.signalBar, { backgroundColor: calibrationStatus !== 'poor' ? getCalibrationColor() : '#555' }]} />
+                    <View style={[styles.signalBar, { backgroundColor: calibrationStatus === 'good' ? getCalibrationColor() : '#555' }]} />
+                    <View style={[styles.signalBar, { backgroundColor: calibrationStatus === 'good' ? getCalibrationColor() : '#555' }]} />
+                </View>
             </View>
 
             {/* Compass */}
@@ -111,45 +136,62 @@ export default function CompassScreen() {
                     styles.compassContainer,
                     { transform: [{ rotate: rotation }, { scale: pulseAnim }] }
                 ]}>
-                    {/* Compass Ring */}
-                    <Surface style={styles.compassRing} elevation={5}>
-                        {/* Direction Markers */}
-                        {['N', 'E', 'S', 'W'].map((dir, i) => (
-                            <Text
-                                key={dir}
-                                style={[
-                                    styles.directionText,
-                                    {
-                                        top: i === 0 ? 20 : i === 2 ? undefined : '45%',
-                                        bottom: i === 2 ? 20 : undefined,
-                                        left: i === 3 ? 20 : i === 1 ? undefined : '45%',
-                                        right: i === 1 ? 20 : undefined,
-                                        color: dir === 'N' ? '#F44336' : '#fff',
-                                    }
-                                ]}
-                            >
-                                {dir}
-                            </Text>
-                        ))}
+                    {/* Compass Ring SVG */}
+                    <Svg width={COMPASS_SIZE} height={COMPASS_SIZE} viewBox={`0 0 ${COMPASS_SIZE} ${COMPASS_SIZE}`}>
+                        <Defs>
+                            <SvgLinearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <Stop offset="0%" stopColor="#1b6d51" stopOpacity="1" />
+                                <Stop offset="50%" stopColor="#2d8a6e" stopOpacity="1" />
+                                <Stop offset="100%" stopColor="#1b6d51" stopOpacity="1" />
+                            </SvgLinearGradient>
+                        </Defs>
 
-                        {/* Degree Markers */}
-                        {Array.from({ length: 36 }).map((_, i) => (
-                            <View
-                                key={i}
-                                style={[
-                                    styles.degreeMark,
-                                    {
-                                        transform: [
-                                            { rotate: `${i * 10}deg` },
-                                            { translateY: -COMPASS_SIZE / 2 + 30 },
-                                        ],
-                                        height: i % 3 === 0 ? 15 : 8,
-                                        backgroundColor: i % 9 === 0 ? '#fff' : 'rgba(255,255,255,0.5)',
-                                    }
-                                ]}
-                            />
-                        ))}
-                    </Surface>
+                        {/* Outer ring */}
+                        <Circle
+                            cx={COMPASS_RADIUS}
+                            cy={COMPASS_RADIUS}
+                            r={COMPASS_RADIUS - 8}
+                            fill="none"
+                            stroke="url(#ringGradient)"
+                            strokeWidth="12"
+                        />
+
+                        {/* Inner dark circle */}
+                        <Circle
+                            cx={COMPASS_RADIUS}
+                            cy={COMPASS_RADIUS}
+                            r={COMPASS_RADIUS - 25}
+                            fill="#0a1628"
+                        />
+
+                        {/* Degree marks */}
+                        {Array.from({ length: 72 }).map((_, i) => {
+                            const angle = (i * 5 * Math.PI) / 180;
+                            const isMajor = i % 18 === 0;
+                            const isMinor = i % 6 === 0;
+                            const length = isMajor ? 15 : isMinor ? 10 : 5;
+                            const startRadius = COMPASS_RADIUS - 25;
+                            const endRadius = startRadius - length;
+
+                            return (
+                                <Line
+                                    key={i}
+                                    x1={COMPASS_RADIUS + startRadius * Math.sin(angle)}
+                                    y1={COMPASS_RADIUS - startRadius * Math.cos(angle)}
+                                    x2={COMPASS_RADIUS + endRadius * Math.sin(angle)}
+                                    y2={COMPASS_RADIUS - endRadius * Math.cos(angle)}
+                                    stroke={isMajor ? '#fff' : 'rgba(255,255,255,0.4)'}
+                                    strokeWidth={isMajor ? 2 : 1}
+                                />
+                            );
+                        })}
+
+                        {/* Cardinal directions */}
+                        <SvgText x={COMPASS_RADIUS} y={55} fill="#fff" fontSize="24" fontWeight="bold" textAnchor="middle">N</SvgText>
+                        <SvgText x={COMPASS_SIZE - 45} y={COMPASS_RADIUS + 8} fill="#fff" fontSize="20" fontWeight="bold" textAnchor="middle">E</SvgText>
+                        <SvgText x={COMPASS_RADIUS} y={COMPASS_SIZE - 40} fill="#fff" fontSize="20" fontWeight="bold" textAnchor="middle">S</SvgText>
+                        <SvgText x={45} y={COMPASS_RADIUS + 8} fill="#fff" fontSize="20" fontWeight="bold" textAnchor="middle">W</SvgText>
+                    </Svg>
 
                     {/* Qibla Direction Indicator */}
                     <View style={[
@@ -157,44 +199,45 @@ export default function CompassScreen() {
                         { transform: [{ rotate: `${qiblaDirection}deg` }] }
                     ]}>
                         <View style={styles.qiblaArrow}>
-                            <MaterialCommunityIcons name="mosque" size={32} color="#FFD700" />
+                            <MaterialCommunityIcons name="navigation-variant" size={28} color="#c9a227" />
+                        </View>
+                    </View>
+
+                    {/* Center Kaaba Icon */}
+                    <View style={styles.centerIcon}>
+                        <View style={styles.kaabaContainer}>
+                            <MaterialCommunityIcons name="cube-outline" size={50} color="#c9a227" />
                         </View>
                     </View>
                 </Animated.View>
 
-                {/* Fixed Center Pointer */}
-                <View style={styles.centerPointer}>
+                {/* Fixed pointer at top */}
+                <View style={styles.fixedPointer}>
                     <MaterialCommunityIcons
-                        name="navigation"
-                        size={40}
-                        color={isPointingToQibla ? '#4CAF50' : '#FF5722'}
+                        name="menu-down"
+                        size={36}
+                        color={isPointingToQibla ? '#4CAF50' : '#c9a227'}
                     />
                 </View>
             </View>
 
-            {/* Status */}
-            <View style={styles.statusContainer}>
-                {isPointingToQibla ? (
-                    <Surface style={[styles.statusBadge, { backgroundColor: '#4CAF50' }]} elevation={2}>
-                        <MaterialCommunityIcons name="check-circle" size={24} color="#fff" />
-                        <Text variant="titleMedium" style={{ color: '#fff', marginLeft: 8 }}>
-                            Arah Kiblat Tepat!
-                        </Text>
-                    </Surface>
-                ) : (
-                    <Text variant="bodyLarge" style={{ color: '#fff', textAlign: 'center' }}>
-                        Putar perangkat hingga panah hijau mengarah ke masjid
-                    </Text>
-                )}
-            </View>
-
-            {/* Calibration */}
-            <View style={styles.calibrationContainer}>
-                <View style={[styles.calibrationDot, { backgroundColor: getCalibrationColor() }]} />
-                <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.7)', marginLeft: 8 }}>
-                    Kalibrasi: {calibrationStatus === 'good' ? 'Baik' : calibrationStatus === 'medium' ? 'Sedang' : 'Buruk'}
+            {/* Direction Info */}
+            <View style={styles.directionInfo}>
+                <Text style={styles.directionTitle}>
+                    Arah Kiblat: {Math.round(qiblaDirection)}° {getDirectionText(qiblaDirection)}
+                </Text>
+                <Text style={styles.distanceText}>
+                    {getDistanceFromMakkah()} km dari Makkah
                 </Text>
             </View>
+
+            {/* Status */}
+            {isPointingToQibla && (
+                <View style={styles.statusBadge}>
+                    <MaterialCommunityIcons name="check-circle" size={20} color="#4CAF50" />
+                    <Text style={styles.statusText}>Arah Kiblat Tepat!</Text>
+                </View>
+            )}
 
             <Text variant="bodySmall" style={styles.calibrationTip}>
                 Tip: Gerakkan HP membentuk angka 8 untuk kalibrasi
@@ -206,6 +249,7 @@ export default function CompassScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#0a1628',
     },
     errorContainer: {
         flex: 1,
@@ -213,14 +257,37 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
     },
-    header: {
+    accuracyBadge: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 20,
+        alignSelf: 'center',
+        backgroundColor: 'rgba(13, 33, 55, 0.9)',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 25,
+        marginTop: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
-    title: {
-        fontWeight: 'bold',
+    accuracyText: {
         color: '#fff',
-        marginBottom: 8,
+        marginLeft: 8,
+        fontSize: 14,
+    },
+    accuracyValue: {
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    signalBars: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        marginLeft: 8,
+        height: 16,
+    },
+    signalBar: {
+        width: 4,
+        marginHorizontal: 1,
+        borderRadius: 1,
     },
     compassWrapper: {
         flex: 1,
@@ -233,26 +300,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    compassRing: {
-        width: COMPASS_SIZE,
-        height: COMPASS_SIZE,
-        borderRadius: COMPASS_SIZE / 2,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        borderWidth: 3,
-        borderColor: 'rgba(255,255,255,0.3)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    directionText: {
-        position: 'absolute',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    degreeMark: {
-        position: 'absolute',
-        width: 2,
-        backgroundColor: 'rgba(255,255,255,0.5)',
-    },
     qiblaIndicator: {
         position: 'absolute',
         width: COMPASS_SIZE,
@@ -261,36 +308,56 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     qiblaArrow: {
-        marginTop: 10,
+        marginTop: 35,
     },
-    centerPointer: {
+    centerIcon: {
         position: 'absolute',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    statusContainer: {
+    kaabaContainer: {
+        backgroundColor: 'rgba(13, 33, 55, 0.9)',
+        borderRadius: 40,
+        padding: 15,
+        borderWidth: 2,
+        borderColor: 'rgba(201, 162, 39, 0.5)',
+    },
+    fixedPointer: {
+        position: 'absolute',
+        top: -10,
+    },
+    directionInfo: {
         alignItems: 'center',
         paddingVertical: 20,
+    },
+    directionTitle: {
+        color: '#fff',
+        fontSize: 22,
+        fontWeight: 'bold',
+    },
+    distanceText: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 14,
+        marginTop: 4,
     },
     statusBadge: {
         flexDirection: 'row',
         alignItems: 'center',
+        alignSelf: 'center',
+        backgroundColor: 'rgba(76, 175, 80, 0.2)',
         paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderRadius: 25,
-    },
-    calibrationContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
         paddingVertical: 10,
+        borderRadius: 25,
+        marginBottom: 10,
     },
-    calibrationDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
+    statusText: {
+        color: '#4CAF50',
+        marginLeft: 8,
+        fontWeight: 'bold',
     },
     calibrationTip: {
         textAlign: 'center',
-        color: 'rgba(255,255,255,0.5)',
-        paddingBottom: 20,
+        color: 'rgba(255,255,255,0.4)',
+        paddingBottom: 30,
     },
 });

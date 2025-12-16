@@ -185,10 +185,10 @@ export default function SettingsScreen() {
 
     return (
         <View style={styles.container}>
-            <LinearGradient colors={['#1a237e', '#283593']} style={styles.header}>
+            <LinearGradient colors={['#0a1628', '#0d2137']} style={styles.header}>
                 <SafeAreaView edges={['top']}>
                     <View style={styles.headerContent}>
-                        <MaterialCommunityIcons name="cog" size={28} color="#fff" />
+                        <MaterialCommunityIcons name="cog" size={28} color="#c9a227" />
                         <Text variant="headlineSmall" style={styles.title}>Pengaturan</Text>
                     </View>
                 </SafeAreaView>
@@ -284,8 +284,8 @@ export default function SettingsScreen() {
                     </Text>
                     <List.Item
                         title="Tema Aplikasi"
-                        description={isPremium ? THEME_CONFIG[selectedTheme].nameId : 'Biru Default (Upgrade untuk lebih)'}
-                        left={() => <List.Icon icon="palette" color={isPremium ? '#1a237e' : '#999'} />}
+                        description={isPremium ? THEME_CONFIG[selectedTheme].nameId : 'Islami Gelap (Upgrade untuk lebih)'}
+                        left={() => <List.Icon icon="palette" color={isPremium ? '#c9a227' : '#999'} />}
                         right={() => (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 {!isPremium && <MaterialCommunityIcons name="lock" size={16} color="#999" style={{ marginRight: 8 }} />}
@@ -298,7 +298,7 @@ export default function SettingsScreen() {
                     <List.Item
                         title="Suara Adzan"
                         description={isPremium ? ADZAN_VOICES[selectedVoice].nameId : 'Default (Upgrade untuk lebih)'}
-                        left={() => <List.Icon icon="volume-high" color={isPremium ? '#1a237e' : '#999'} />}
+                        left={() => <List.Icon icon="volume-high" color={isPremium ? '#c9a227' : '#999'} />}
                         right={() => (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 {!isPremium && <MaterialCommunityIcons name="lock" size={16} color="#999" style={{ marginRight: 8 }} />}
@@ -311,7 +311,7 @@ export default function SettingsScreen() {
                     <List.Item
                         title="Export Data"
                         description="Export laporan sholat ke CSV"
-                        left={() => <List.Icon icon="file-export" color={isPremium ? '#1a237e' : '#999'} />}
+                        left={() => <List.Icon icon="file-export" color={isPremium ? '#c9a227' : '#999'} />}
                         right={() => (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 {!isPremium && <MaterialCommunityIcons name="lock" size={16} color="#999" style={{ marginRight: 8 }} />}
@@ -348,7 +348,7 @@ export default function SettingsScreen() {
 
                 {/* Upgrade Banner */}
                 {!isPremium && (
-                    <Surface style={[styles.section, { backgroundColor: '#FFF8E1' }]} elevation={1}>
+                    <Surface style={[styles.section, { backgroundColor: 'rgba(201, 162, 39, 0.15)' }]} elevation={1}>
                         <List.Item
                             title="⭐ Upgrade ke Premium"
                             description="Bebas iklan & fitur eksklusif"
@@ -462,7 +462,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#0a1628',
     },
     header: {
         paddingBottom: 20,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
         margin: 16,
         marginBottom: 0,
         borderRadius: 12,
-        backgroundColor: '#fff',
+        backgroundColor: '#0d2137',
         overflow: 'hidden',
     },
     sectionTitle: {
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
         paddingTop: 16,
         paddingBottom: 8,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#c9a227',
     },
     subSectionTitle: {
         paddingHorizontal: 16,

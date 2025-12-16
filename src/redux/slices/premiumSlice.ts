@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
-export type AppTheme = 'default' | 'midnight' | 'ocean' | 'forest' | 'gold';
+export type AppTheme = 'default' | 'royal_purple' | 'desert_sand' | 'ocean_night' | 'rose_garden' | 'emerald_palace' | 'classic' | 'midnight' | 'ocean' | 'forest' | 'gold';
 export type AdzanVoice = 'default' | 'mecca' | 'medina' | 'mishary' | 'abdul_basit';
 
 interface StreakProtection {

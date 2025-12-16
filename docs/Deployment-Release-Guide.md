@@ -104,7 +104,7 @@ Location: Create folder `./assets/playstore/` untuk semua files
 
 #### Store Listing Text
 ```
-Title: "SholatKu"
+Title: "SholatKu -Jadwal Adzan, Kiblat"
 Subtitle: "Sholat Tepat Waktu, Khusyu Terjaga"
 
 Short Description (80 chars max):

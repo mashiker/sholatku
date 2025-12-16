@@ -95,25 +95,26 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
             return false;
         }
 
-        // Android specific channel
+        // Android specific channel - Use default sound for reliable playback
         if (Platform.OS === 'android') {
-            // Using a new channel ID to force update settings on device
+            // Main adzan channel with high priority sound
             await Notifications.setNotificationChannelAsync('adzan_v4', {
                 name: 'Adzan Notifications',
                 importance: Notifications.AndroidImportance.MAX,
                 vibrationPattern: [0, 500, 200, 500, 200, 1000],
-                lightColor: '#1a237e',
-                sound: undefined, // Handle sound manually for consistent playback
+                lightColor: '#c9a227',
+                sound: 'default', // Use device default sound - more reliable
                 enableVibrate: true,
                 showBadge: true,
+                bypassDnd: true, // Bypass Do Not Disturb for prayer alarms
             });
 
-            // Also create a channel for pre-reminders
+            // Create a channel for pre-reminders with lower priority
             await Notifications.setNotificationChannelAsync('reminder', {
                 name: 'Prayer Reminders',
                 importance: Notifications.AndroidImportance.HIGH,
                 vibrationPattern: [0, 250, 250, 250],
-                lightColor: '#00897b',
+                lightColor: '#1b6d51',
                 sound: 'default',
             });
         }
@@ -187,7 +188,7 @@ export const schedulePrayerNotification = async (
             content: {
                 title: `🕌 ${prayerName}`,
                 body: PRAYER_MESSAGES[prayerName] || `Waktu ${prayerName} telah tiba`,
-                sound: settings.type === 'silent' ? undefined : 'default',
+                sound: 'default', // Always use sound for adzan
                 vibrate: settings.vibrate ? [0, 250, 250, 250] : undefined,
                 priority: 'max',
                 data: { prayerName, type: 'adzan' },

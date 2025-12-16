@@ -47,31 +47,19 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetTime, pray
         if (timeLeft.isTime) {
             return (
                 <View style={styles.compactContainer}>
-                    <Text variant="titleLarge" style={{ color: '#4CAF50', fontWeight: 'bold' }}>
+                    <Text variant="headlineMedium" style={styles.timeUpText}>
                         Waktunya!
                     </Text>
                 </View>
             );
         }
 
+        // Format time as HH:MM display (like the design shows 13:17)
+        const formattedTime = `${timeLeft.hours.toString().padStart(2, '0')}:${timeLeft.minutes.toString().padStart(2, '0')}`;
+
         return (
             <View style={styles.compactContainer}>
-                <View style={styles.compactRow}>
-                    <View style={styles.compactUnit}>
-                        <Text style={styles.compactNumber}>{timeLeft.hours.toString().padStart(2, '0')}</Text>
-                        <Text style={styles.compactLabel}>Jam</Text>
-                    </View>
-                    <Text style={styles.compactSeparator}>:</Text>
-                    <View style={styles.compactUnit}>
-                        <Text style={styles.compactNumber}>{timeLeft.minutes.toString().padStart(2, '0')}</Text>
-                        <Text style={styles.compactLabel}>Menit</Text>
-                    </View>
-                    <Text style={styles.compactSeparator}>:</Text>
-                    <View style={styles.compactUnit}>
-                        <Text style={styles.compactNumber}>{timeLeft.seconds.toString().padStart(2, '0')}</Text>
-                        <Text style={styles.compactLabel}>Detik</Text>
-                    </View>
-                </View>
+                <Text style={styles.largeTime}>{formattedTime}</Text>
             </View>
         );
     }
@@ -83,10 +71,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetTime, pray
 
     return (
         <View style={styles.container}>
-            <Text variant="labelMedium" style={{ color: theme.colors.onPrimaryContainer }}>
+            <Text variant="labelMedium" style={{ color: 'rgba(255,255,255,0.7)' }}>
                 Menuju {prayerName}
             </Text>
-            <Text variant="displayMedium" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
+            <Text variant="displayMedium" style={{ fontWeight: 'bold', color: '#c9a227' }}>
                 {timeString}
             </Text>
         </View>
@@ -101,27 +89,15 @@ const styles = StyleSheet.create({
     compactContainer: {
         alignItems: 'center',
     },
-    compactRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    compactUnit: {
-        alignItems: 'center',
-        minWidth: 40,
-    },
-    compactNumber: {
-        fontSize: 24,
+    largeTime: {
+        fontSize: 56,
         fontWeight: 'bold',
-        color: '#1a237e',
+        color: '#ffffff',
+        letterSpacing: 2,
     },
-    compactLabel: {
-        fontSize: 10,
-        color: '#666',
-    },
-    compactSeparator: {
-        fontSize: 24,
+    timeUpText: {
+        color: '#c9a227',
         fontWeight: 'bold',
-        color: '#1a237e',
-        marginHorizontal: 4,
     },
 });
+

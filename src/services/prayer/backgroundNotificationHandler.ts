@@ -21,6 +21,8 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
 
     if (notifData?.type === 'adzan') {
         try {
+            const prayerName = notifData?.prayerName as string;
+
             // Set audio mode for background playback
             await Audio.setAudioModeAsync({
                 playsInSilentModeIOS: true,
@@ -29,9 +31,15 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
                 playThroughEarpieceAndroid: false,
             });
 
+            // Determine which adzan to play based on prayer name
+            const isSubuh = prayerName?.toLowerCase() === 'subuh' || prayerName?.toLowerCase() === 'fajr';
+            const soundAsset = isSubuh
+                ? require('../../../assets/adzan_subuh.mp3')
+                : require('../../../assets/adzan_other.mp3');
+
             // Load and play adzan sound
             const { sound } = await Audio.Sound.createAsync(
-                require('../../../assets/adzan_shubuh.mp3'),
+                soundAsset,
                 { shouldPlay: true, volume: 1.0 }
             );
 
@@ -42,7 +50,7 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
                 }
             });
 
-            console.log('Adzan sound playing in background');
+            console.log(`Adzan sound playing in background for ${prayerName}`);
         } catch (e) {
             console.error('Failed to play adzan in background:', e);
         }
@@ -55,9 +63,16 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
  */
 export const registerBackgroundNotificationHandler = async () => {
     try {
-        await Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
-        console.log('Background notification handler registered');
+        // Check if task is already registered
+        const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_NOTIFICATION_TASK);
+        if (!isRegistered) {
+            await Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+            console.log('Background notification handler registered');
+        } else {
+            console.log('Background notification handler already registered');
+        }
     } catch (e) {
         console.warn('Failed to register background notification handler:', e);
     }
 };
+

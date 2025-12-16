@@ -37,11 +37,12 @@ export default function BottomTabNavigator() {
         <Tab.Navigator
             screenOptions={({ route }) => ({
                 headerShown: false,
-                tabBarActiveTintColor: theme.colors.primary,
-                tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+                tabBarActiveTintColor: '#c9a227',
+                tabBarInactiveTintColor: 'rgba(255,255,255,0.5)',
                 tabBarStyle: {
-                    backgroundColor: theme.colors.surface,
-                    borderTopColor: theme.colors.outlineVariant,
+                    backgroundColor: '#0a1628',
+                    borderTopColor: 'rgba(201, 162, 39, 0.2)',
+                    borderTopWidth: 1,
                     height: 70,
                     paddingBottom: 12,
                     paddingTop: 6,
@@ -80,3 +81,4 @@ export default function BottomTabNavigator() {
         </Tab.Navigator>
     );
 }
+
