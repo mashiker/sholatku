@@ -6,7 +6,7 @@ import { useCompass } from '@/hooks/useCompass';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Svg, { Circle, Line, Text as SvgText, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Line, Text as SvgText, Defs, LinearGradient as SvgLinearGradient, Stop, Rect, Polygon, Ellipse } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 const COMPASS_SIZE = width * 0.85;
@@ -206,7 +206,33 @@ export default function CompassScreen() {
                     {/* Center Kaaba Icon */}
                     <View style={styles.centerIcon}>
                         <View style={styles.kaabaContainer}>
-                            <MaterialCommunityIcons name="cube-outline" size={50} color="#c9a227" />
+                            {/* Kaaba SVG - simplified but recognizable */}
+                            <Svg width={60} height={65} viewBox="0 0 60 65">
+                                {/* Shadow ellipse */}
+                                <Ellipse cx={30} cy={62} rx={22} ry={3} fill="rgba(0,0,0,0.3)" />
+
+                                {/* Main Kaaba body - black cube */}
+                                <Rect x={8} y={15} width={44} height={45} fill="#1a1a1a" stroke="#333" strokeWidth={1} />
+
+                                {/* Gold decorative band (Kiswah) */}
+                                <Rect x={8} y={22} width={44} height={6} fill="#c9a227" />
+
+                                {/* Arabic calligraphy lines on gold band */}
+                                <Line x1={12} y1={25} x2={20} y2={25} stroke="#0a1628" strokeWidth={1} />
+                                <Line x1={25} y1={25} x2={35} y2={25} stroke="#0a1628" strokeWidth={1} />
+                                <Line x1={40} y1={25} x2={48} y2={25} stroke="#0a1628" strokeWidth={1} />
+
+                                {/* Door (Multazam) */}
+                                <Rect x={22} y={35} width={16} height={25} fill="#c9a227" rx={3} />
+                                <Rect x={25} y={38} width={10} height={22} fill="#0a1628" rx={2} />
+
+                                {/* Hajr Aswad (Black Stone) corner */}
+                                <Circle cx={10} cy={57} r={4} fill="#c9a227" />
+                                <Circle cx={10} cy={57} r={2} fill="#1a1a1a" />
+
+                                {/* Top edge highlight */}
+                                <Line x1={8} y1={15} x2={52} y2={15} stroke="#c9a227" strokeWidth={1} />
+                            </Svg>
                         </View>
                     </View>
                 </Animated.View>

@@ -37,7 +37,7 @@ export default function PremiumScreen() {
         { icon: 'cancel', title: 'Bebas Iklan', desc: 'Pengalaman tanpa gangguan' },
         { icon: 'chart-line', title: 'Statistik Lengkap', desc: 'Data historis tanpa batas' },
         { icon: 'shield-check', title: 'Streak Protection', desc: 'Lindungi streak ibadah Anda' },
-        { icon: 'palette', title: 'Tema Premium', desc: 'Akses tema eksklusif' },
+        { icon: 'palette', title: 'Tema Premium', desc: 'Akses 10 tema eksklusif' },
         { icon: 'volume-high', title: 'Suara Adzan Premium', desc: 'Pilihan muadzin terkenal' },
         { icon: 'file-export', title: 'Export Data', desc: 'Export laporan ke PDF/Excel' },
     ];
@@ -45,7 +45,7 @@ export default function PremiumScreen() {
     if (premiumState.isPremium) {
         return (
             <View style={styles.container}>
-                <LinearGradient colors={['#FFD700', '#FFA000']} style={styles.premiumHeader}>
+                <LinearGradient colors={['#c9a227', '#d4af37']} style={styles.premiumHeader}>
                     <SafeAreaView edges={['top']}>
                         <View style={styles.header}>
                             <MaterialCommunityIcons name="crown" size={64} color="#fff" />
@@ -57,8 +57,8 @@ export default function PremiumScreen() {
 
                 <View style={styles.content}>
                     <Surface style={styles.thankYouCard} elevation={2}>
-                        <MaterialCommunityIcons name="heart" size={48} color="#E91E63" />
-                        <Text variant="titleMedium" style={{ marginTop: 16, fontWeight: 'bold' }}>
+                        <MaterialCommunityIcons name="heart" size={48} color="#c9a227" />
+                        <Text variant="titleMedium" style={styles.thankYouTitle}>
                             Jazakallahu Khairan!
                         </Text>
                         <Text style={styles.thankYouText}>
@@ -72,10 +72,10 @@ export default function PremiumScreen() {
 
     return (
         <View style={styles.container}>
-            <LinearGradient colors={['#1a237e', '#283593']} style={styles.header}>
+            <LinearGradient colors={['#0a1628', '#0d2137']} style={styles.header}>
                 <SafeAreaView edges={['top']}>
                     <View style={styles.headerContent}>
-                        <MaterialCommunityIcons name="crown" size={48} color="#FFD700" />
+                        <MaterialCommunityIcons name="crown" size={48} color="#c9a227" />
                         <Text variant="headlineMedium" style={styles.title}>SholatKu Premium</Text>
                         <Text style={styles.subtitle}>Tingkatkan pengalaman ibadah Anda</Text>
                     </View>
@@ -91,13 +91,15 @@ export default function PremiumScreen() {
                             <List.Item
                                 title={feature.title}
                                 description={feature.desc}
+                                titleStyle={styles.featureTitle}
+                                descriptionStyle={styles.featureDesc}
                                 left={() => (
                                     <View style={styles.featureIcon}>
-                                        <MaterialCommunityIcons name={feature.icon as any} size={24} color="#1a237e" />
+                                        <MaterialCommunityIcons name={feature.icon as any} size={24} color="#c9a227" />
                                     </View>
                                 )}
                             />
-                            {index < features.length - 1 && <Divider />}
+                            {index < features.length - 1 && <Divider style={styles.divider} />}
                         </React.Fragment>
                     ))}
                 </Surface>
@@ -112,7 +114,7 @@ export default function PremiumScreen() {
                     <Text variant="titleLarge" style={styles.priceTitle}>Seumur Hidup</Text>
                     <Text variant="displaySmall" style={styles.price}>Rp 49.000</Text>
                     <Text style={styles.priceDesc}>Sekali bayar, akses selamanya</Text>
-                    <Button mode="contained" onPress={handlePurchase} style={styles.buyButton} buttonColor="#FFD700" textColor="#000">
+                    <Button mode="contained" onPress={handlePurchase} style={styles.buyButton} buttonColor="#c9a227" textColor="#000">
                         Beli Sekarang
                     </Button>
                 </Surface>
@@ -121,7 +123,7 @@ export default function PremiumScreen() {
                     <Text variant="titleLarge" style={styles.priceTitle}>Langganan Tahunan</Text>
                     <Text variant="displaySmall" style={styles.price}>Rp 99.000 / tahun</Text>
                     <Text style={styles.priceDesc}>Hemat 2 bulan!</Text>
-                    <Button mode="outlined" onPress={handlePurchase} style={styles.buyButton}>
+                    <Button mode="outlined" onPress={handlePurchase} style={styles.buyButton} textColor="#c9a227">
                         Langganan
                     </Button>
                 </Surface>
@@ -139,7 +141,7 @@ export default function PremiumScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#0a1628',
     },
     header: {
         paddingBottom: 30,
@@ -168,36 +170,47 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 16,
         marginBottom: 12,
+        color: '#c9a227',
     },
     featureCard: {
         borderRadius: 12,
-        backgroundColor: '#fff',
+        backgroundColor: '#0d2137',
         overflow: 'hidden',
+    },
+    featureTitle: {
+        color: '#fff',
+        fontWeight: '600',
+    },
+    featureDesc: {
+        color: 'rgba(255,255,255,0.6)',
     },
     featureIcon: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#e8eaf6',
+        backgroundColor: 'rgba(201, 162, 39, 0.2)',
         justifyContent: 'center',
         alignItems: 'center',
         marginLeft: 8,
     },
+    divider: {
+        backgroundColor: 'rgba(255,255,255,0.1)',
+    },
     priceCard: {
         padding: 20,
         borderRadius: 16,
-        backgroundColor: '#fff',
+        backgroundColor: '#0d2137',
         marginBottom: 16,
         alignItems: 'center',
     },
     recommendedCard: {
         borderWidth: 2,
-        borderColor: '#FFD700',
+        borderColor: '#c9a227',
     },
     recommendedBadge: {
         position: 'absolute',
         top: -12,
-        backgroundColor: '#FFD700',
+        backgroundColor: '#c9a227',
         paddingHorizontal: 16,
         paddingVertical: 4,
         borderRadius: 12,
@@ -210,14 +223,15 @@ const styles = StyleSheet.create({
     priceTitle: {
         fontWeight: 'bold',
         marginTop: 8,
+        color: '#fff',
     },
     price: {
         fontWeight: 'bold',
-        color: '#1a237e',
+        color: '#c9a227',
         marginTop: 8,
     },
     priceDesc: {
-        color: '#666',
+        color: 'rgba(255,255,255,0.6)',
         marginTop: 4,
     },
     buyButton: {
@@ -226,7 +240,7 @@ const styles = StyleSheet.create({
     },
     note: {
         textAlign: 'center',
-        color: '#666',
+        color: 'rgba(255,255,255,0.6)',
         fontSize: 12,
         marginTop: 16,
         paddingHorizontal: 20,
@@ -235,12 +249,18 @@ const styles = StyleSheet.create({
         padding: 24,
         borderRadius: 16,
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: '#0d2137',
+    },
+    thankYouTitle: {
+        marginTop: 16,
+        fontWeight: 'bold',
+        color: '#fff',
     },
     thankYouText: {
         textAlign: 'center',
-        color: '#666',
+        color: 'rgba(255,255,255,0.7)',
         marginTop: 8,
         lineHeight: 22,
     },
 });
+
