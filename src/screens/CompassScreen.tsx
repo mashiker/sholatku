@@ -198,7 +198,7 @@ export default function CompassScreen() {
                         styles.qiblaIndicator,
                         { transform: [{ rotate: `${qiblaDirection}deg` }] }
                     ]}>
-                        <View style={styles.qiblaArrow}>
+                        <View style={[styles.qiblaArrow, { transform: [{ rotate: '45deg' }] }]}>
                             <MaterialCommunityIcons name="navigation-variant" size={28} color="#c9a227" />
                         </View>
                     </View>
