@@ -95,23 +95,38 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
             return false;
         }
 
-        // Android specific channel - Use default sound for reliable playback
+        // Android specific channels with custom adzan sounds
         if (Platform.OS === 'android') {
-            // Main adzan channel with high priority sound
-            await Notifications.setNotificationChannelAsync('adzan_v4', {
-                name: 'Adzan Notifications',
+            // Adzan channel for Subuh - uses adzan_subuh.mp3
+            await Notifications.setNotificationChannelAsync('adzan_subuh', {
+                name: 'Adzan Subuh',
+                description: 'Notifikasi suara adzan untuk waktu Subuh',
                 importance: Notifications.AndroidImportance.MAX,
                 vibrationPattern: [0, 500, 200, 500, 200, 1000],
                 lightColor: '#c9a227',
-                sound: 'default', // Use device default sound - more reliable
+                sound: 'adzan_subuh.mp3', // Custom sound from assets
                 enableVibrate: true,
                 showBadge: true,
                 bypassDnd: true, // Bypass Do Not Disturb for prayer alarms
             });
 
-            // Create a channel for pre-reminders with lower priority
+            // Adzan channel for other prayers - uses adzan_other.mp3
+            await Notifications.setNotificationChannelAsync('adzan_other', {
+                name: 'Adzan Sholat',
+                description: 'Notifikasi suara adzan untuk waktu sholat',
+                importance: Notifications.AndroidImportance.MAX,
+                vibrationPattern: [0, 500, 200, 500, 200, 1000],
+                lightColor: '#c9a227',
+                sound: 'adzan_other.mp3', // Custom sound from assets
+                enableVibrate: true,
+                showBadge: true,
+                bypassDnd: true, // Bypass Do Not Disturb for prayer alarms
+            });
+
+            // Create a channel for pre-reminders with lower priority (no adzan)
             await Notifications.setNotificationChannelAsync('reminder', {
-                name: 'Prayer Reminders',
+                name: 'Pengingat Sholat',
+                description: 'Pengingat sebelum waktu sholat',
                 importance: Notifications.AndroidImportance.HIGH,
                 vibrationPattern: [0, 250, 250, 250],
                 lightColor: '#1b6d51',
@@ -183,23 +198,29 @@ export const schedulePrayerNotification = async (
         'Isya': 'Hayya Alash Sholah - Waktu Isya telah tiba',
     };
 
+    // Determine if this is Subuh prayer for correct adzan sound
+    const isSubuh = prayerName.toLowerCase() === 'subuh' || prayerName.toLowerCase() === 'fajr';
+    const channelId = isSubuh ? 'adzan_subuh' : 'adzan_other';
+    const soundFile = isSubuh ? 'adzan_subuh.mp3' : 'adzan_other.mp3';
+
     try {
         const id = await Notifications.scheduleNotificationAsync({
             content: {
                 title: `🕌 ${prayerName}`,
                 body: PRAYER_MESSAGES[prayerName] || `Waktu ${prayerName} telah tiba`,
-                sound: 'default', // Always use sound for adzan
+                sound: soundFile, // Custom adzan sound
                 vibrate: settings.vibrate ? [0, 250, 250, 250] : undefined,
                 priority: 'max',
-                data: { prayerName, type: 'adzan' },
+                data: { prayerName, type: 'adzan', isSubuh },
             },
             trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DATE,
                 date: prayerTime,
-                channelId: 'adzan_v4',
+                channelId: channelId,
             },
         });
 
+        console.log(`Scheduled ${prayerName} notification at ${prayerTime.toLocaleTimeString()} on channel ${channelId}`);
         return id;
     } catch (error) {
         console.error('Failed to schedule notification:', error);
