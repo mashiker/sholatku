@@ -1,36 +1,54 @@
 import React, { useEffect } from 'react';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Text, View } from 'react-native';
 import { TamaguiProvider } from 'tamagui';
-import { PaperProvider, MD3DarkTheme } from 'react-native-paper';
+import { PaperProvider, MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
 import { store, persistor } from './src/redux/store';
 import RootNavigator from './src/navigation/RootNavigator';
 import tamaguiConfig from './tamagui.config';
 import { initDatabase } from './src/services/database/dbInit';
 import { registerBackgroundNotificationHandler } from './src/services/prayer/backgroundNotificationHandler';
+import { selectTheme } from './src/redux/slices/premiumSlice';
+import { THEME_CONFIG, AppTheme } from './src/theme/themes';
 
-// Custom theme for react-native-paper - Islamic Dark Theme
-const theme = {
-  ...MD3DarkTheme,
-  colors: {
-    ...MD3DarkTheme.colors,
-    primary: '#c9a227',
-    primaryContainer: '#1a3a52',
-    secondary: '#1b6d51',
-    secondaryContainer: '#0d2137',
-    surface: '#0d2137',
-    background: '#0a1628',
-    surfaceVariant: '#1a3a52',
-    onSurface: '#ffffff',
-    onSurfaceVariant: 'rgba(255,255,255,0.7)',
-    outline: '#1a3a52',
-    outlineVariant: 'rgba(201, 162, 39, 0.3)',
-    error: '#cf6679',
-  },
+// Function to create Paper theme from our theme config
+const createPaperTheme = (themeKey: AppTheme) => {
+  const themeColors = THEME_CONFIG[themeKey]?.colors || THEME_CONFIG.default.colors;
+
+  // Determine if this is a light theme based on background color
+  const isLightTheme = themeColors.background.startsWith('#e') ||
+    themeColors.background.startsWith('#f') ||
+    themeColors.textPrimary === '#333333';
+
+  const baseTheme = isLightTheme ? MD3LightTheme : MD3DarkTheme;
+
+  return {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      primary: themeColors.accent,
+      primaryContainer: themeColors.primaryContainer,
+      secondary: themeColors.secondary,
+      secondaryContainer: themeColors.surface,
+      surface: themeColors.surface,
+      background: themeColors.background,
+      surfaceVariant: themeColors.primaryContainer,
+      onSurface: themeColors.textPrimary,
+      onSurfaceVariant: themeColors.textSecondary,
+      outline: themeColors.border,
+      outlineVariant: `${themeColors.accent}4D`, // 30% opacity
+      error: '#cf6679',
+    },
+    custom: themeColors,
+  };
 };
 
-export default function App() {
+// Theme-aware inner component
+const ThemedApp = () => {
+  const selectedTheme = useSelector(selectTheme);
+  const theme = createPaperTheme(selectedTheme);
+
   useEffect(() => {
     initDatabase().catch(err => console.error('DB Init Failed:', err));
 
@@ -41,13 +59,19 @@ export default function App() {
   }, []);
 
   return (
+    <PaperProvider theme={theme}>
+      <TamaguiProvider config={tamaguiConfig as any}>
+        <RootNavigator />
+      </TamaguiProvider>
+    </PaperProvider>
+  );
+};
+
+export default function App() {
+  return (
     <Provider store={store}>
       <PersistGate loading={<View><Text>Loading...</Text></View>} persistor={persistor}>
-        <PaperProvider theme={theme}>
-          <TamaguiProvider config={tamaguiConfig as any}>
-            <RootNavigator />
-          </TamaguiProvider>
-        </PaperProvider>
+        <ThemedApp />
       </PersistGate>
     </Provider>
   );

@@ -35,11 +35,8 @@ export default function PremiumScreen() {
 
     const features = [
         { icon: 'cancel', title: 'Bebas Iklan', desc: 'Pengalaman tanpa gangguan' },
-        { icon: 'chart-line', title: 'Statistik Lengkap', desc: 'Data historis tanpa batas' },
-        { icon: 'shield-check', title: 'Streak Protection', desc: 'Lindungi streak ibadah Anda' },
         { icon: 'palette', title: 'Tema Premium', desc: 'Akses 10 tema eksklusif' },
         { icon: 'volume-high', title: 'Suara Adzan Premium', desc: 'Pilihan muadzin terkenal' },
-        { icon: 'file-export', title: 'Export Data', desc: 'Export laporan ke PDF/Excel' },
     ];
 
     if (premiumState.isPremium) {

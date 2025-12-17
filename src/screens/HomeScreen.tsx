@@ -158,7 +158,10 @@ export default function HomeScreen() {
             <SafeAreaView edges={['top']} style={styles.safeArea}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.appTitle}>𝒮holatku</Text>
+                    <View style={styles.titleContainer}>
+                        <MaterialCommunityIcons name="moon-waning-crescent" size={24} color="#c9a227" />
+                        <Text style={styles.appTitle}>Sholatku</Text>
+                    </View>
                     <View style={styles.headerIcons}>
                         <TouchableOpacity style={styles.headerIcon}>
                             <MaterialCommunityIcons name="cog-outline" size={24} color="#fff" />
@@ -287,8 +290,14 @@ const styles = StyleSheet.create({
     },
     appTitle: {
         color: '#fff',
-        fontSize: 28,
-        fontStyle: 'italic',
+        fontSize: 24,
+        fontWeight: '700',
+        marginLeft: 8,
+        letterSpacing: 0.5,
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     headerIcons: {
         flexDirection: 'row',

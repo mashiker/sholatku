@@ -237,14 +237,6 @@ export default function SettingsScreen() {
                         <>
                             <Divider />
                             <List.Item
-                                title="Jenis Notifikasi"
-                                description={getNotificationTypeName()}
-                                left={() => <List.Icon icon="volume-high" />}
-                                right={() => <List.Icon icon="chevron-right" />}
-                                onPress={handleNotificationTypeChange}
-                            />
-                            <Divider />
-                            <List.Item
                                 title="Pengingat Sebelum Adzan"
                                 description={preReminderEnabled ? `${preReminderMinutes} menit sebelum` : 'Nonaktif'}
                                 left={() => <List.Icon icon="clock-alert" />}
@@ -256,23 +248,6 @@ export default function SettingsScreen() {
                                 )}
                                 onPress={preReminderEnabled ? handlePreReminderMinutes : undefined}
                             />
-                            <Divider />
-                            <Text variant="labelMedium" style={styles.subSectionTitle}>
-                                Notifikasi Per Waktu Sholat
-                            </Text>
-                            {prayerNotifications && (Object.keys(prayerNames) as Array<keyof typeof prayerNames>).map(key => (
-                                <List.Item
-                                    key={key}
-                                    title={prayerNames[key]}
-                                    left={() => <List.Icon icon="mosque" />}
-                                    right={() => (
-                                        <Switch
-                                            value={prayerNotifications?.[key] ?? true}
-                                            onValueChange={() => { dispatch(togglePrayerNotification(key)); }}
-                                        />
-                                    )}
-                                />
-                            ))}
                         </>
                     )}
                 </Surface>
@@ -307,43 +282,7 @@ export default function SettingsScreen() {
                         )}
                         onPress={() => setShowVoiceModal(true)}
                     />
-                    <Divider />
-                    <List.Item
-                        title="Export Data"
-                        description="Export laporan sholat ke CSV"
-                        left={() => <List.Icon icon="file-export" color={isPremium ? '#c9a227' : '#999'} />}
-                        right={() => (
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                {!isPremium && <MaterialCommunityIcons name="lock" size={16} color="#999" style={{ marginRight: 8 }} />}
-                                <List.Icon icon="chevron-right" />
-                            </View>
-                        )}
-                        onPress={async () => {
-                            if (!isPremium) {
-                                navigation.navigate('Premium');
-                                return;
-                            }
-                            setExporting(true);
-                            try {
-                                // Sample data - in real app, fetch from Redux/DB
-                                await exportAndShare({
-                                    prayerRecords: [
-                                        { date: '2024-12-14', fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
-                                        { date: '2024-12-15', fajr: true, dhuhr: true, asr: false, maghrib: true, isha: true },
-                                    ],
-                                    streak: 7,
-                                    totalDays: 14,
-                                    completionRate: 85,
-                                    startDate: '1 Desember 2024',
-                                    endDate: '14 Desember 2024',
-                                }, 'csv');
-                                Alert.alert('Sukses', 'Laporan berhasil di-export!');
-                            } catch (error) {
-                                Alert.alert('Error', 'Gagal export data');
-                            }
-                            setExporting(false);
-                        }}
-                    />
+
                 </Surface>
 
                 {/* Upgrade Banner */}
@@ -414,7 +353,7 @@ export default function SettingsScreen() {
                         onPress={() => {
                             Alert.alert(
                                 'Syarat & Ketentuan',
-                                'Dengan menggunakan aplikasi SholatKu, Anda menyetujui:\n\n1. Aplikasi ini dibuat untuk membantu ibadah dan bukan pengganti fatwa ulama.\n\n2. Waktu sholat dihitung berdasarkan perhitungan astronomi dan dapat berbeda dengan jadwal lokal.\n\n3. Arah kiblat menggunakan kompas digital yang akurasinya tergantung pada perangkat Anda.\n\n4. Data disimpan secara lokal di perangkat Anda.\n\n5. Aplikasi ini gratis tanpa iklan.',
+                                'Dengan menggunakan aplikasi SholatKu, Anda menyetujui:\n\n1. Aplikasi ini dibuat untuk membantu ibadah dan bukan pengganti fatwa ulama.\n\n2. Waktu sholat dihitung berdasarkan perhitungan astronomi dan dapat berbeda dengan jadwal lokal.\n\n3. Arah kiblat menggunakan kompas digital yang akurasinya tergantung pada perangkat Anda.\n\n4. Data disimpan secara lokal di perangkat Anda.\n\n5. Aplikasi ini GRATIS dengan iklan. Anda dapat berlangganan Premium untuk menghilangkan iklan dan menikmati fitur eksklusif.\n\n6. Paket Premium tersedia dalam bentuk langganan bulanan/tahunan atau pembelian seumur hidup.',
                                 [{ text: 'Tutup' }]
                             );
                         }}
@@ -428,7 +367,7 @@ export default function SettingsScreen() {
                         onPress={() => {
                             Alert.alert(
                                 'Kebijakan Privasi',
-                                'SholatKu menghargai privasi Anda:\n\n📍 Lokasi\nDigunakan hanya untuk menghitung waktu sholat dan arah kiblat. Tidak dikirim ke server manapun.\n\n💾 Penyimpanan\nSemua data disimpan lokal di perangkat Anda.\n\n🔔 Notifikasi\nDigunakan hanya untuk reminder waktu sholat.\n\n🚫 Tanpa Iklan\nAplikasi ini tidak menampilkan iklan.\n\n🔐 Tanpa Tracking\nKami tidak melacak atau mengumpulkan data apapun.',
+                                'SholatKu menghargai privasi Anda:\n\n📍 Lokasi\nDigunakan hanya untuk menghitung waktu sholat dan arah kiblat. Tidak dikirim ke server manapun.\n\n💾 Penyimpanan\nSemua data disimpan lokal di perangkat Anda.\n\n🔔 Notifikasi\nDigunakan hanya untuk reminder waktu sholat.\n\n📢 Iklan\nAplikasi versi gratis menampilkan iklan dari Google AdMob. Upgrade ke Premium untuk menghilangkan iklan.\n\n🔐 Tanpa Tracking\nKami tidak melacak atau mengumpulkan data pribadi Anda.',
                                 [{ text: 'Tutup' }]
                             );
                         }}

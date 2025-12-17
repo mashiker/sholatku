@@ -193,16 +193,6 @@ export default function CompassScreen() {
                         <SvgText x={45} y={COMPASS_RADIUS + 8} fill="#fff" fontSize="20" fontWeight="bold" textAnchor="middle">W</SvgText>
                     </Svg>
 
-                    {/* Qibla Direction Indicator */}
-                    <View style={[
-                        styles.qiblaIndicator,
-                        { transform: [{ rotate: `${qiblaDirection}deg` }] }
-                    ]}>
-                        <View style={[styles.qiblaArrow, { transform: [{ rotate: '45deg' }] }]}>
-                            <MaterialCommunityIcons name="navigation-variant" size={28} color="#c9a227" />
-                        </View>
-                    </View>
-
                     {/* Center Kaaba Icon */}
                     <View style={styles.centerIcon}>
                         <View style={styles.kaabaContainer}>
@@ -237,7 +227,17 @@ export default function CompassScreen() {
                     </View>
                 </Animated.View>
 
-                {/* Fixed pointer at top */}
+                {/* Qibla Direction Arrow - OUTSIDE rotating compass, shows where qibla is */}
+                <View style={[
+                    styles.qiblaIndicatorFixed,
+                    { transform: [{ rotate: `${qiblaDirection - heading}deg` }] }
+                ]}>
+                    <View style={styles.qiblaArrowOuter}>
+                        <MaterialCommunityIcons name="navigation" size={32} color="#c9a227" />
+                    </View>
+                </View>
+
+                {/* Fixed pointer at top - shows where phone is pointing */}
                 <View style={styles.fixedPointer}>
                     <MaterialCommunityIcons
                         name="menu-down"
@@ -326,15 +326,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    qiblaIndicator: {
+    qiblaIndicatorFixed: {
         position: 'absolute',
-        width: COMPASS_SIZE,
-        height: COMPASS_SIZE,
+        width: COMPASS_SIZE + 40,
+        height: COMPASS_SIZE + 40,
         justifyContent: 'flex-start',
         alignItems: 'center',
     },
-    qiblaArrow: {
-        marginTop: 35,
+    qiblaArrowOuter: {
+        marginTop: -5,
     },
     centerIcon: {
         position: 'absolute',
