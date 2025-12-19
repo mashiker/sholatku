@@ -2,6 +2,7 @@
   "expo": {
     "name": "Sholatku - Jadwal Adzan, Kiblat",
     "slug": "sholatku",
+    "owner": "alatpajak",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -73,7 +74,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "32be22df-8b4b-4498-924d-1424e036a193"
+        "projectId": "dfe397f1-e17c-42c4-a118-8ca3af6e2a8c"
       }
     }
   }
